@@ -1,16 +1,16 @@
-FROM oven/bun:1 AS build
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-FROM oven/bun:1-alpine
-WORKDIR /app
-RUN adduser -S appuser
-COPY package.json bun.lockb ./
-RUN bun install --production --frozen-lockfile
-COPY --from=build /app/dist .
-USER appuser
+FROM nginx:1.29-alpine
+RUN apk add --no-cache gettext
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 5173
-CMD ["bunx", "serve", "-s", ".", "-l", "5173"]
+ENTRYPOINT ["/entrypoint.sh"]

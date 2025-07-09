@@ -1,8 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
-
-if (!API_URL) {
-  throw new Error("VITE_API_URL is not set. The application cannot connect to the backend.");
-}
+import { loadConfig } from '../config';
 
 export interface Task {
   id: number;
@@ -10,15 +6,17 @@ export interface Task {
 }
 
 export const fetchMessage = async (): Promise<string> => {
-  const response = await fetch(`${API_URL}/`);
+  const config = await loadConfig();
+  const response = await fetch(`${config.apiUrl}/`);
   if (!response.ok) {
     throw new Error('Failed to fetch message');
   }
-  return (await response.json()).message;
+  return response.text();
 };
 
 export const fetchTasks = async (): Promise<Task[]> => {
-  const response = await fetch(`${API_URL}/tasks`);
+  const config = await loadConfig();
+  const response = await fetch(`${config.apiUrl}/tasks`);
   if (!response.ok) {
     throw new Error('Failed to fetch tasks');
   }
@@ -26,7 +24,8 @@ export const fetchTasks = async (): Promise<Task[]> => {
 };
 
 export const createTask = async (task: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/tasks`, {
+  const config = await loadConfig();
+  const response = await fetch(`${config.apiUrl}/tasks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
